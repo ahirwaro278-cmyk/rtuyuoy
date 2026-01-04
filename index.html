@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Project Builder</title>
+
+<style>
+* { box-sizing: border-box; font-family: Arial; }
+body { margin:0; background:#1e1e1e; color:white; }
+.page { display:none; padding:20px; }
+.active { display:block; }
+button { padding:8px 15px; background:#00ffcc; border:none; cursor:pointer; margin:3px; }
+input { padding:8px; width:220px; }
+textarea { width:100%; height:280px; background:#252526; color:white; }
+.project { background:#2a2a2a; padding:10px; margin:8px 0; display:flex; justify-content:space-between; }
+#previewContainer { height:450px; background:white; }
+iframe { width:100%; height:100%; border:none; }
+</style>
+</head>
+
+<body>
+
+<div id="home" class="page active">
+<h2 align="center">My Projects</h2>
+<div id="projectList"></div>
+<center><button onclick="go('create')">New Project</button></center>
+</div>
+
+<div id="create" class="page">
+<center>
+<input id="projectNameInput" placeholder="Project Name"><br><br>
+<button onclick="createProject()">Create</button><br>
+<button onclick="go('home')">Back</button>
+</center>
+</div>
+
+<div id="menu" class="page">
+<h2 id="projectTitle" align="center"></h2>
+<center>
+<button onclick="go('html')">HTML</button>
+<button onclick="go('css')">CSS</button>
+<button onclick="go('js')">JS</button>
+<button onclick="go('preview')">Preview</button>
+<button onclick="go('home')">Home</button>
+</center>
+</div>
+
+<div id="html" class="page">
+<textarea id="htmlCode"></textarea><br>
+<button onclick="saveCode();go('menu')">Save</button>
+</div>
+
+<div id="css" class="page">
+<textarea id="cssCode"></textarea><br>
+<button onclick="saveCode();go('menu')">Save</button>
+</div>
+
+<div id="js" class="page">
+<textarea id="jsCode"></textarea><br>
+<button onclick="saveCode();go('menu')">Save</button>
+</div>
+
+<div id="preview" class="page">
+<h3 id="previewTitle"></h3>
+<div id="previewContainer">
+<iframe id="previewFrame"></iframe>
+</div><br>
+<button onclick="go('menu')">Back</button>
+</div>
+
+<script>
+let projects = JSON.parse(localStorage.getItem("projects")) || [];
+let current = null;
+
+function go(p){
+document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+document.getElementById(p).classList.add("active");
+if(p==="preview") updatePreview();
+}
+
+function renderProjects(){
+let l=document.getElementById("projectList");
+l.innerHTML="";
+projects.forEach((p,i)=>{
+l.innerHTML+=`
+<div class="project">
+<span>${p.name}</span>
+<button onclick="openProject(${i})">Open</button>
+</div>`;
+});
+}
+
+function createProject(){
+let n=projectNameInput.value.trim();
+if(!n)return alert("Enter name");
+projects.push({name:n,html:"<h1>Hello</h1>",css:"",js:""});
+localStorage.setItem("projects",JSON.stringify(projects));
+renderProjects(); go("home");
+}
+
+function openProject(i){
+current=i;
+projectTitle.innerText=projects[i].name;
+htmlCode.value=projects[i].html;
+cssCode.value=projects[i].css;
+jsCode.value=projects[i].js;
+go("menu");
+}
+
+function saveCode(){
+if(current==null)return;
+projects[current].html=htmlCode.value;
+projects[current].css=cssCode.value;
+projects[current].js=jsCode.value;
+localStorage.setItem("projects",JSON.stringify(projects));
+}
+
+function updatePreview(){
+let p=projects[current];
+previewTitle.innerText=p.name;
+let code=`<html><style>${p.css}</style><body>${p.html}<script>${p.js}<\/script></body></html>`;
+let f=previewFrame.contentDocument;
+f.open(); f.write(code); f.close();
+}
+
+renderProjects();
+</script>
+
+</body>
+</html>
